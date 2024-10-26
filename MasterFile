@@ -333,6 +333,10 @@
                 <div class="uwu-rate" id="uwuToSol">1 $UwU = 0.000000 SOL</div>
             </div>
         </div>
+        <div class="conversion-section">
+            <input type="number" id="solInput" class="conversion-input" placeholder="Enter SOL amount" oninput="convertSolToUwu()">
+            <div id="conversionResult" class="conversion-result"></div>
+        </div>
         <div class="theme-selector">
             <button class="theme-button" onclick="setTheme('light-mode')">Unicorn Theme</button>
             <button class="theme-button" onclick="setTheme('night-mode')">Night Mode</button>
@@ -356,6 +360,54 @@
 
     <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
     <script src="https://unpkg.com/@metaplex-foundation/js@latest/dist/index.global.js"></script>
+    <script type="module">
+        import walletConnector from './wallet.js';
+
+        // Function to update UI after wallet connection
+        function updateWalletUI(publicKey) {
+            const walletSection = document.getElementById('walletSection');
+            if (publicKey) {
+                walletSection.innerHTML = `
+                    <div class="wallet-address">Connected: ${publicKey.slice(0, 4)}...${publicKey.slice(-4)}</div>
+                    <button class="wallet-button" onclick="disconnectWallet()">Disconnect</button>
+                `;
+            } else {
+                walletSection.innerHTML = `
+                    <button class="wallet-button" onclick="connectWallet()">Connect Wallet</button>
+                `;
+            }
+        }
+
+        // Set up callbacks
+        walletConnector.setOnConnectCallback(updateWalletUI);
+        walletConnector.setOnDisconnectCallback(() => updateWalletUI(null));
+
+        // Expose connect and disconnect functions globally
+        window.connectWallet = async () => {
+            try {
+                await walletConnector.connect();
+            } catch (error) {
+                console.error('Failed to connect wallet:', error);
+                // Show error message to user
+            }
+        };
+
+        window.disconnectWallet = async () => {
+            try {
+                await walletConnector.disconnect();
+            } catch (error) {
+                console.error('Failed to disconnect wallet:', error);
+                // Show error message to user
+            }
+        };
+
+        // You can now use walletConnector in your main script
+        // For example:
+        // if (walletConnector.isConnected()) {
+        //     const publicKey = walletConnector.getPublicKey();
+        //     // Use public key for transactions, etc.
+        // }
+    </script>
     <script>
     (function() {
         // Configuration and Constants
@@ -365,9 +417,17 @@
         const UPDATE_INTERVAL = 60000; // 1 minute
 
         const requestOptions = {
-            method: "get",
+            method: "GET",
             headers: {
-                "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjcmVhdGVkQXQiOjE3Mjk4NjkyNTE3ODEsImVtYWlsIjoiY2x2dGNoZGVzaWduc0BnbWFpbC5jb20iLCJhY3Rpb24iOiJ0b2tlbi1hcGkiLCJhcGlWZXJzaW9uIjoidjIiLCJpYXQiOjE3Mjk4NjkyNTF9.k4QFwynlrXfSdLMP6yCa3jANSFIRf8mNkAQnP0IZBiA"
+                "Authorization": `Bearer your_magic_eden_api_key_here`,
+                "Content-Type": "application/json"
+            }
+        };
+
+        const uwuRequestOptions = {
+            method: "GET",
+            headers: {
+                "token": "your_solscan_api_key_here"
             }
         };
 
@@ -524,7 +584,8 @@
         // API Interactions
         async function fetchUwuToSolRate() {
             try {
-                const response = await fetch(UWU_TO_SOL_API, requestOptions);
+                const response = await fetch(UWU_TO_SOL_API, uwuRequestOptions);
+                if (!response.ok) throw new Error('Failed to fetch UwU to SOL rate');
                 const data = await response.json();
                 uwuToSolRate = data.data.price;
                 convertSolToUwu(); // Update the conversion when rate changes
@@ -539,49 +600,77 @@
         async function fetchFloorPrices() {
             const magicEdenApi = `${MAGIC_EDEN_API}/collections/`;
 
+            const collectionEndpoints = {
+                "uwupunk": "UWUPUNK",
+                "nuddies": "NUDDIES",
+                "unicornio": "UNICORNIO", // This might need to be updated
+                "uwumojii": "UWUMOJIS",
+                "Unipuppets": "UNIPUPPETS", // This might need to be updated
+                "unigirls": "UNIGIRLS"
+            };
+
             for (let collection of collections) {
                 try {
-                    const response = await fetch(`${magicEdenApi}${collection.symbol}/stats`);
+                    const endpoint = collectionEndpoints[collection.symbol] || collection.symbol.toUpperCase();
+                    const response = await fetch(`${magicEdenApi}${endpoint}/stats?timeWindow=24h&listingAggMode=true`, {
+                        method: "GET",
+                        headers: {
+                            "accept": "application/json"
+                        }
+                    });
+                    
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
+                    
                     const data = await response.json();
                     if (data && typeof data.floorPrice !== 'undefined') {
                         collection.floorPrice = data.floorPrice / 1e9; // Convert to SOL
+                        collection.sales24h = data.volume24hr || 0; // Update 24h sales data
                     } else {
                         console.warn(`Floor price data not found for ${collection.name}`);
                         collection.floorPrice = null;
+                        collection.sales24h = 0;
                     }
                 } catch (error) {
                     console.error(`Error fetching floor price for ${collection.name}:`, error.message);
                     collection.floorPrice = null;
+                    collection.sales24h = 0;
                 }
             }
+            renderCollections(); // Call this after fetching floor prices
         }
 
         async function fetchRates() {
             try {
                 // Fetch UwU to SOL rate
-                const uwuResponse = await fetch(UWU_TO_SOL_API, requestOptions);
+                const uwuResponse = await fetch(UWU_TO_SOL_API, uwuRequestOptions);
+                if (!uwuResponse.ok) {
+                    throw new Error(`HTTP error! status: ${uwuResponse.status}`);
+                }
                 const uwuData = await uwuResponse.json();
                 uwuToSolRate = uwuData.data.price;
 
                 // Fetch SOL to USD rate
                 const solResponse = await fetch(SOL_TO_USD_API);
+                if (!solResponse.ok) {
+                    throw new Error(`HTTP error! status: ${solResponse.status}`);
+                }
                 const solData = await solResponse.json();
                 solToUsdRate = solData.solana.usd;
 
                 updateUwUTracker();
             } catch (error) {
                 console.error('Error fetching rates:', error);
-                showMessage('Error fetching current rates.', true);
+                showMessage('Error fetching current rates. Please check your network connection and try again.', true);
             }
         }
 
         function updateUwUTracker() {
-            const uwuToUsdRate = 1 / uwuToSolRate * solToUsdRate;
+            const uwuToUsdRate = uwuToSolRate * solToUsdRate;
             document.getElementById('uwuToUsd').textContent = `1 $UwU = $${uwuToUsdRate.toFixed(4)} USD`;
             document.getElementById('uwuToSol').textContent = `1 $UwU = ${uwuToSolRate.toFixed(6)} SOL`;
+            convertSolToUwu(); // Update the conversion when rates change
         }
 
         // Initialize Theme
@@ -732,8 +821,13 @@
             applyTheme();
         });
 
-        // Make sure to expose the convertSolToUwu function to the global scope
+        // Make sure to expose the necessary functions to the global scope
         window.convertSolToUwu = convertSolToUwu;
+        window.applyFilter = applyFilter;
+        window.buyNFT = buyNFT;
+        window.connectWallet = connectWallet;
+        window.disconnectWallet = disconnectWallet;
+        window.setTheme = setTheme;
     })();
     </script>
 </body>
