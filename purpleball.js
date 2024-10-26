@@ -6,9 +6,17 @@
     const UPDATE_INTERVAL = 60000; // 1 minute
 
     const requestOptions = {
-        method: "get",
+        method: "GET",
         headers: {
-            "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjcmVhdGVkQXQiOjE3Mjk4NjkyNTE3ODEsImVtYWlsIjoiY2x2dGNoZGVzaWduc0BnbWFpbC5jb20iLCJhY3Rpb24iOiJ0b2tlbi1hcGkiLCJhcGlWZXJzaW9uIjoidjIiLCJpYXQiOjE3Mjk4NjkyNTF9.k4QFwynlrXfSdLMP6yCa3jANSFIRf8mNkAQnP0IZBiA"
+            "Authorization": `Bearer your_magic_eden_api_key_here`,
+            "Content-Type": "application/json"
+        }
+    };
+
+    const uwuRequestOptions = {
+        method: "GET",
+        headers: {
+            "token": "your_solscan_api_key_here"
         }
     };
 
@@ -52,8 +60,6 @@
     ];
 
     // State Management
-    let wallet = null;
-    let provider = null;
     let uwuToSolRate = 0;
     let solToUsdRate = 0;
 
@@ -85,87 +91,11 @@
         setTheme(savedTheme);
     }
 
-    // Attach setTheme to window object to make it globally accessible
-    window.setTheme = setTheme;
-
-    // Updated Wallet Management
-    async function connectWallet() {
-        if (wallet) {
-            showMessage('Wallet already connected.');
-            return;
-        }
-
-        try {
-            let walletProvider;
-
-            if (window.solana && window.solana.isPhantom) {
-                walletProvider = window.solana;
-            } else if (window.backpack) {
-                walletProvider = window.backpack;
-            } else {
-                throw new Error('No compatible wallet found. Please install Phantom or Backpack.');
-            }
-
-            await walletProvider.connect();
-            provider = walletProvider;
-            wallet = provider.publicKey.toString();
-
-            // Use the API key to verify the connection (this is a placeholder, adjust as needed)
-            const response = await fetch('https://api.magiceden.dev/v2/wallets/connect', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${requestOptions.headers.token}`
-                },
-                body: JSON.stringify({ publicKey: wallet })
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to verify wallet connection with the server.');
-            }
-
-            showMessage('Wallet connected successfully!');
-            updateWalletSection();
-        } catch (error) {
-            console.error('Error connecting wallet:', error);
-            showMessage(`Failed to connect wallet: ${error.message}`, true);
-            wallet = null;
-            provider = null;
-        }
-    }
-
-    function updateWalletSection() {
-        const walletSection = document.getElementById('walletSection');
-        if (wallet) {
-            walletSection.innerHTML = `
-                <div class="wallet-address">Connected: ${wallet.slice(0, 4)}...${wallet.slice(-4)}</div>
-                <button class="wallet-button" onclick="disconnectWallet()">Disconnect</button>
-            `;
-        } else {
-            walletSection.innerHTML = `
-                <button class="wallet-button" onclick="connectWallet()">Connect Wallet</button>
-            `;
-        }
-    }
-
-    async function disconnectWallet() {
-        if (provider && provider.disconnect) {
-            await provider.disconnect();
-        }
-        wallet = null;
-        provider = null;
-        showMessage('Wallet disconnected.');
-        updateWalletSection();
-    }
-
-    // Make sure to expose the connectWallet and disconnectWallet functions to the global scope
-    window.connectWallet = connectWallet;
-    window.disconnectWallet = disconnectWallet;
-
     // API Interactions
     async function fetchUwuToSolRate() {
         try {
-            const response = await fetch(UWU_TO_SOL_API, requestOptions);
+            const response = await fetch(UWU_TO_SOL_API, uwuRequestOptions);
+            if (!response.ok) throw new Error('Failed to fetch UwU to SOL rate');
             const data = await response.json();
             uwuToSolRate = data.data.price;
             convertSolToUwu(); // Update the conversion when rate changes
@@ -180,49 +110,77 @@
     async function fetchFloorPrices() {
         const magicEdenApi = `${MAGIC_EDEN_API}/collections/`;
 
+        const collectionEndpoints = {
+            "uwupunk": "UWUPUNK",
+            "nuddies": "NUDDIES",
+            "unicornio": "UNICORNIO", // This might need to be updated
+            "uwumojii": "UWUMOJIS",
+            "Unipuppets": "UNIPUPPETS", // This might need to be updated
+            "unigirls": "UNIGIRLS"
+        };
+
         for (let collection of collections) {
             try {
-                const response = await fetch(`${magicEdenApi}${collection.symbol}/stats`);
+                const endpoint = collectionEndpoints[collection.symbol] || collection.symbol.toUpperCase();
+                const response = await fetch(`${magicEdenApi}${endpoint}/stats?timeWindow=24h&listingAggMode=true`, {
+                    method: "GET",
+                    headers: {
+                        "accept": "application/json"
+                    }
+                });
+                
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
+                
                 const data = await response.json();
                 if (data && typeof data.floorPrice !== 'undefined') {
                     collection.floorPrice = data.floorPrice / 1e9; // Convert to SOL
+                    collection.sales24h = data.volume24hr || 0; // Update 24h sales data
                 } else {
                     console.warn(`Floor price data not found for ${collection.name}`);
                     collection.floorPrice = null;
+                    collection.sales24h = 0;
                 }
             } catch (error) {
                 console.error(`Error fetching floor price for ${collection.name}:`, error.message);
                 collection.floorPrice = null;
+                collection.sales24h = 0;
             }
         }
+        renderCollections(); // Call this after fetching floor prices
     }
 
     async function fetchRates() {
         try {
             // Fetch UwU to SOL rate
-            const uwuResponse = await fetch(UWU_TO_SOL_API, requestOptions);
+            const uwuResponse = await fetch(UWU_TO_SOL_API, uwuRequestOptions);
+            if (!uwuResponse.ok) {
+                throw new Error(`HTTP error! status: ${uwuResponse.status}`);
+            }
             const uwuData = await uwuResponse.json();
             uwuToSolRate = uwuData.data.price;
 
             // Fetch SOL to USD rate
             const solResponse = await fetch(SOL_TO_USD_API);
+            if (!solResponse.ok) {
+                throw new Error(`HTTP error! status: ${solResponse.status}`);
+            }
             const solData = await solResponse.json();
             solToUsdRate = solData.solana.usd;
 
             updateUwUTracker();
         } catch (error) {
             console.error('Error fetching rates:', error);
-            showMessage('Error fetching current rates.', true);
+            showMessage('Error fetching current rates. Please check your network connection and try again.', true);
         }
     }
 
     function updateUwUTracker() {
-        const uwuToUsdRate = 1 / uwuToSolRate * solToUsdRate;
+        const uwuToUsdRate = uwuToSolRate * solToUsdRate;
         document.getElementById('uwuToUsd').textContent = `1 $UwU = $${uwuToUsdRate.toFixed(4)} USD`;
         document.getElementById('uwuToSol').textContent = `1 $UwU = ${uwuToSolRate.toFixed(6)} SOL`;
+        convertSolToUwu(); // Update the conversion when rates change
     }
 
     // Initialize Theme
@@ -373,12 +331,9 @@
         applyTheme();
     });
 
-    // Make sure to expose the convertSolToUwu function to the global scope
+    // Make sure to expose the necessary functions to the global scope
     window.convertSolToUwu = convertSolToUwu;
-    
-    // Expose applyFilter to the global scope
     window.applyFilter = applyFilter;
-    
-    // Expose buyNFT to the global scope
     window.buyNFT = buyNFT;
+    window.setTheme = setTheme;
 })();
