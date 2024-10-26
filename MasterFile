@@ -1,141 +1,740 @@
-// Configuration and Constants
-const UWU_TO_SOL_API = 'https://pro-api.solscan.io/v2.0/token/price?address=UwU8RVXB69Y6Dcju6cN2Qef6fykkq6UUNpB15rZku6Z';
-const MAGIC_EDEN_API = "https://api-mainnet.magiceden.dev/v2";
-const UPDATE_INTERVAL = 300000; // 5 minutes
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UwU NFT Collections</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            margin: 0;
+            padding: 0;
+            transition: all 0.5s ease;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            text-shadow: 0 0 10px currentColor;
+        }
+        .collection-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 40px;
+            padding: 20px;
+        }
+        .collection-card {
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .collection-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+        .collection-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        .collection-card:hover .collection-image {
+            transform: scale(1.05);
+        }
+        .collection-info {
+            padding: 20px;
+        }
+        .collection-name {
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        .button-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        .collection-link, .buy-button {
+            flex: 1;
+            min-width: 120px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        .theme-selector {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            padding: 15px;
+            border-radius: 12px;
+        }
+        .theme-button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+        
+        /* Theme Styles */
+        body.light-mode {
+            background-color: #f6b7f5;
+            color: #b981e4;
+        }
+        body.light-mode .collection-card {
+            background-color: #fff1ff;
+            border: 2px solid #ffb7ff;
+        }
+        body.light-mode .collection-link, body.light-mode .buy-button, body.light-mode .wallet-button {
+            background-color: #ffb7ff;
+            color: #fff;
+        }
+        body.light-mode .collection-link:hover, body.light-mode .buy-button:hover, body.light-mode .wallet-button:hover {
+            background-color: #ff85ff;
+            transform: translateY(-2px);
+        }
+        body.light-mode .theme-button {
+            background-color: #ffb7ff;
+            color: #fff;
+        }
+        body.light-mode .theme-button:hover {
+            background-color: #ff85ff;
+        }
 
-const requestOptions = {
-    method: "get",
-    headers: {
-        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-    }
-};
+        body.night-mode {
+            background-color: #000000;
+            color: #FF85FF;
+        }
+        body.night-mode .collection-card {
+            background-color: #1A001A;
+            border: 2px solid #FF85FF;
+        }
+        body.night-mode .collection-link, body.night-mode .buy-button, body.night-mode .wallet-button {
+            background-color: #FF85FF;
+            color: #000;
+        }
+        body.night-mode .collection-link:hover, body.night-mode .buy-button:hover, body.night-mode .wallet-button:hover {
+            background-color: #FF00FF;
+            transform: translateY(-2px);
+        }
+        body.night-mode .theme-button {
+            background-color: #1A001A;
+            color: #FF85FF;
+            border: 2px solid #FF85FF;
+        }
+        body.night-mode .theme-button:hover {
+            background-color: #FF85FF;
+            color: #000;
+        }
 
-const collections = [
-    { 
-        name: "UwU Punk", 
-        link: "https://magiceden.io/marketplace/uwupunk", 
-        symbol: "uwupunk",
-        image: "https://img-cdn.magiceden.dev/..."
-    },
-    // other collections
-];
+        body.miami-vice {
+            background-color: #ff77a2;
+            color: #00ffff;
+        }
+        body.miami-vice .collection-card {
+            background-color: #2a0a2f;
+            border: 2px solid #00ffff;
+        }
+        body.miami-vice .collection-link, body.miami-vice .buy-button, body.miami-vice .wallet-button {
+            background-color: #00ffff;
+            color: #2a0a2f;
+        }
+        body.miami-vice .collection-link:hover, body.miami-vice .buy-button:hover, body.miami-vice .wallet-button:hover {
+            background-color: #00cccc;
+            transform: translateY(-2px);
+        }
+        body.miami-vice .theme-button {
+            background-color: #2a0a2f;
+            color: #00ffff;
+            border: 2px solid #00ffff;
+        }
+        body.miami-vice .theme-button:hover {
+            background-color: #00ffff;
+            color: #2a0a2f;
+        }
 
-// State Management
-let wallet = null;
-let uwuToSolRate = 0;
+        .price-info {
+            margin: 10px 0;
+            padding: 8px;
+            border-radius: 6px;
+            background-color: rgba(255,255,255,0.1);
+        }
 
-// UI Helper Functions
-function showLoading() {
-    document.getElementById('loadingOverlay').style.display = 'flex';
-}
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
 
-function hideLoading() {
-    document.getElementById('loadingOverlay').style.display = 'none';
-}
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
 
-function showMessage(message, isError = false) {
-    const messageDiv = document.createElement('div');
-    messageDiv.className = isError ? 'error-message' : 'success-message';
-    messageDiv.textContent = message;
-    document.querySelector('.container').insertBefore(messageDiv, document.querySelector('.collection-grid'));
-    setTimeout(() => messageDiv.remove(), 5000);
-}
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
 
-// Theme Management
-function setTheme(themeName) {
-    document.body.className = themeName;
-    localStorage.setItem('theme', themeName);
-}
+        .error-message {
+            background-color: rgba(255, 0, 0, 0.1);
+            border: 1px solid currentColor;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 6px;
+            text-align: center;
+        }
 
-function applyTheme() {
-    const savedTheme = localStorage.getItem('theme') || 'night-mode';
-    setTheme(savedTheme);
-}
+        .success-message {
+            background-color: rgba(0, 255, 0, 0.1);
+            border: 1px solid currentColor;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 6px;
+            text-align: center;
+        }
 
-// Wallet Management
-async function connectWallet() {
-    // Implement wallet connection logic
-}
+        .filter-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
 
-// API Interactions
-async function fetchUwuToSolRate() {
-    try {
-        const response = await fetch(UWU_TO_SOL_API, requestOptions);
-        const data = await response.json();
-        uwuToSolRate = data.data.price;
-        return uwuToSolRate;
-    } catch (error) {
-        console.error('Error fetching UWU to SOL rate:', error);
-        showMessage('Error fetching current exchange rate.', true);
-        return 0;
-    }
-}
+        .filter-select {
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: rgba(255,255,255,0.1);
+            color: inherit;
+            border: 2px solid currentColor;
+        }
 
-async function fetchFloorPrices() {
-    const magicEdenApi = `${MAGIC_EDEN_API}/collections/`;
-    // Fetch and update each collection's floor price
-}
+        .filter-select option {
+            background-color: #1A001A;
+            color: #FF85FF;
+        }
 
-// Initialize Theme
-applyTheme();
+        .wallet-section {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
 
-// Add these new properties to each collection object
-collections.forEach((collection, index) => {
-    collection.createdAt = new Date(2023, 0, 1 + index).getTime(); // Example creation dates
-    collection.sales24h = Math.floor(Math.random() * 100); // Random sales data for demonstration
-});
+        .wallet-button {
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            background-color: rgba(255,255,255,0.1);
+            color: inherit;
+            border: 2px solid currentColor;
+            transition: all 0.3s ease;
+        }
 
-// Filter function
-function applyFilter() {
-    // Filter logic based on user selection
-}
+        .wallet-button:hover {
+            background-color: rgba(255,255,255,0.2);
+        }
 
-// Initial rendering of the page
-function initializePage() {
-    showLoading();
-    fetchUwuToSolRate().then(rate => {
-        updatePrices();
-        renderCollections();
-        hideLoading();
-    });
-}
+        .wallet-address {
+            padding: 10px 15px;
+            border-radius: 8px;
+            background-color: rgba(255,255,255,0.1);
+            color: inherit;
+            border: 2px solid currentColor;
+        }
 
-// Render collection data
-function renderCollections(collectionsToRender = collections) {
-    const collectionGrid = document.getElementById("collectionGrid");
-    collectionGrid.innerHTML = "";
-    collectionsToRender.forEach(collection => {
-        collectionGrid.appendChild(createCollectionCard(collection));
-    });
-}
+        .conversion-section {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: rgba(255,255,255,0.1);
+            border-radius: 8px;
+        }
 
-// Create individual collection cards
-function createCollectionCard(collection) {
-    const card = document.createElement("div");
-    card.className = "collection-card";
-    card.innerHTML = `
-        <img src="${collection.image}" alt="${collection.name}" class="collection-image">
-        <div class="collection-info">
-            <h3 class="collection-name">${collection.name}</h3>
-            <div class="price-info">Floor Price: ${collection.floorPrice} SOL</div>
-            <div class="button-container">
-                <a href="${collection.link}" class="collection-link" target="_blank">View</a>
-                <button class="buy-button" onclick="buyNFT('${collection.symbol}')">Buy</button>
+        .conversion-input {
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid currentColor;
+            background-color: rgba(255,255,255,0.1);
+            color: inherit;
+            font-size: 1rem;
+        }
+
+        .conversion-result {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .uwu-tracker {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: rgba(255,255,255,0.1);
+            border-radius: 8px;
+        }
+
+        .uwu-tracker h2 {
+            margin-bottom: 10px;
+        }
+
+        .uwu-rates {
+            display: flex;
+            justify-content: space-around;
+            font-size: 1.2rem;
+        }
+
+        .uwu-rate {
+            padding: 10px;
+            background-color: rgba(255,255,255,0.05);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="night-mode">
+    <div class="container">
+        <div class="wallet-section" id="walletSection">
+            <button class="wallet-button" onclick="connectWallet()">Connect Wallet</button>
+        </div>
+        <h1>🦄 UwU NFT Collections 🦄</h1>
+        <div class="uwu-tracker">
+            <h2>$UwU Live Tracker</h2>
+            <div class="uwu-rates">
+                <div class="uwu-rate" id="uwuToUsd">1 $UwU = $0.00 USD</div>
+                <div class="uwu-rate" id="uwuToSol">1 $UwU = 0.000000 SOL</div>
             </div>
         </div>
-    `;
-    return card;
-}
+        <div class="theme-selector">
+            <button class="theme-button" onclick="setTheme('light-mode')">Unicorn Theme</button>
+            <button class="theme-button" onclick="setTheme('night-mode')">Night Mode</button>
+            <button class="theme-button" onclick="setTheme('miami-vice')">Vice</button>
+        </div>
+        <div class="filter-container">
+            <select id="filterSelect" class="filter-select" onchange="applyFilter()">
+                <option value="relevance">Relevance</option>
+                <option value="priceHighToLow">Price: High to Low</option>
+                <option value="priceLowToHigh">Price: Low to High</option>
+                <option value="oldest">Oldest</option>
+                <option value="newest">Newest</option>
+                <option value="sales24h">Sales in 24h</option>
+            </select>
+        </div>
+        <div class="collection-grid" id="collectionGrid"></div>
+    </div>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
 
-// Update prices periodically
-async function updatePrices() {
-    // Logic to update prices every UPDATE_INTERVAL
-}
+    <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
+    <script src="https://unpkg.com/@metaplex-foundation/js@latest/dist/index.global.js"></script>
+    <script>
+    (function() {
+        // Configuration and Constants
+        const UWU_TO_SOL_API = 'https://pro-api.solscan.io/v2.0/token/price?address=UwU8RVXB69Y6Dcju6cN2Qef6fykkq6UUNpB15rZku6Z';
+        const MAGIC_EDEN_API = "https://api-mainnet.magiceden.dev/v2";
+        const SOL_TO_USD_API = 'https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd';
+        const UPDATE_INTERVAL = 60000; // 1 minute
 
-// Buy NFT (stub for now)
-async function buyNFT(symbol) {
-    // Implement buy functionality
-    showMessage(`Attempting to buy ${symbol}...`);
-}
+        const requestOptions = {
+            method: "get",
+            headers: {
+                "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjcmVhdGVkQXQiOjE3Mjk4NjkyNTE3ODEsImVtYWlsIjoiY2x2dGNoZGVzaWduc0BnbWFpbC5jb20iLCJhY3Rpb24iOiJ0b2tlbi1hcGkiLCJhcGlWZXJzaW9uIjoidjIiLCJpYXQiOjE3Mjk4NjkyNTF9.k4QFwynlrXfSdLMP6yCa3jANSFIRf8mNkAQnP0IZBiA"
+            }
+        };
 
-initializePage();
+        const collections = [
+            { 
+                name: "UwU Punk", 
+                link: "https://magiceden.io/marketplace/uwupunk", 
+                symbol: "uwupunk",
+                image: "https://img-cdn.magiceden.dev/rs:fill:400:0:0/plain/https://na-assets.pinit.io/3wr3Var2fngt5svoBGR4bHjEmJBC713BDrMvtnw656iL/c0377a59-82d8-4958-b30f-a72aae3b1dbe/13"
+            },
+            { 
+                name: "Nuddies", 
+                link: "https://magiceden.io/marketplace/nuddies", 
+                symbol: "nuddies",
+                image: "https://img-cdn.magiceden.dev/rs:fill:400:0:0/plain/https://creator-x.s3.amazonaws.com/metadata/padNUaV2GYwu1YAaNDHGpXNgxqbaY2F2ejZSHDm2tND/nuddies/4255.jpeg"
+            },
+            { 
+                name: "Unicornio", 
+                link: "https://magiceden.io/marketplace/unicornio", 
+                symbol: "unicornio",
+                image: "https://img-cdn.magiceden.dev/rs:fill:400:0:0/plain/https://na-assets.pinit.io/AiBWVkRxDHY1t2ePcmGiwHkfSih1fpXFuzso4ce5qxvQ/5932c417-9560-4e48-9973-2383bb365123/68"
+            },
+            { 
+                name: "UwUmojii", 
+                link: "https://magiceden.io/marketplace/uwumojii", 
+                symbol: "uwumojii",
+                image: "https://img-cdn.magiceden.dev/rs:fill:400:0:0/plain/https://creator-hub-prod.s3.us-east-2.amazonaws.com/uwumojii_pfp_1725144242878.png"
+            },
+            { 
+                name: "Unipuppets", 
+                link: "https://magiceden.io/marketplace/Unipuppets", 
+                symbol: "Unipuppets",
+                image: "https://img-cdn.magiceden.dev/rs:fill:400:0:0/plain/https://we-assets.pinit.io/KfYEZpmddMeTN7uan3aj7HDKYpesX7spFjPRbZ2LXZ7/aa8150a8-cdd1-41b6-b9f6-5200e036e9b2/141"
+            },
+            { 
+                name: "Unigirls", 
+                link: "https://magiceden.io/marketplace/unigirls", 
+                symbol: "unigirls",
+                image: "https://img-cdn.magiceden.dev/rs:fill:400:0:0/plain/https://na-assets.pinit.io/EcQG1GUxNNk7BFQ6Fgq8nz3JbBQg82TtPDnPSj3izVfb/51401c4c-a30d-4e39-9eb2-1e6abe2b4345/37"
+            }
+        ];
+
+        // State Management
+        let wallet = null;
+        let provider = null;
+        let uwuToSolRate = 0;
+        let solToUsdRate = 0;
+
+        // UI Helper Functions
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
+        function showMessage(message, isError = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = isError ? 'error-message' : 'success-message';
+            messageDiv.textContent = message;
+            document.querySelector('.container').insertBefore(messageDiv, document.querySelector('.collection-grid'));
+            setTimeout(() => messageDiv.remove(), 5000);
+        }
+
+        // Theme Management
+        function setTheme(themeName) {
+            document.body.className = themeName;
+            localStorage.setItem('theme', themeName);
+        }
+
+        function applyTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'night-mode';
+            setTheme(savedTheme);
+        }
+
+        // Attach setTheme to window object to make it globally accessible
+        window.setTheme = setTheme;
+
+        // Updated Wallet Management
+        async function connectWallet() {
+            if (wallet) {
+                showMessage('Wallet already connected.');
+                return;
+            }
+
+            try {
+                let walletProvider;
+
+                if (window.solana && window.solana.isPhantom) {
+                    walletProvider = window.solana;
+                } else if (window.backpack) {
+                    walletProvider = window.backpack;
+                } else {
+                    throw new Error('No compatible wallet found. Please install Phantom or Backpack.');
+                }
+
+                await walletProvider.connect();
+                provider = walletProvider;
+                wallet = provider.publicKey.toString();
+
+                // Use the API key to verify the connection (this is a placeholder, adjust as needed)
+                const response = await fetch('https://api.magiceden.dev/v2/wallets/connect', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${requestOptions.headers.token}`
+                    },
+                    body: JSON.stringify({ publicKey: wallet })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to verify wallet connection with the server.');
+                }
+
+                showMessage('Wallet connected successfully!');
+                updateWalletSection();
+            } catch (error) {
+                console.error('Error connecting wallet:', error);
+                showMessage(`Failed to connect wallet: ${error.message}`, true);
+                wallet = null;
+                provider = null;
+            }
+        }
+
+        function updateWalletSection() {
+            const walletSection = document.getElementById('walletSection');
+            if (wallet) {
+                walletSection.innerHTML = `
+                    <div class="wallet-address">Connected: ${wallet.slice(0, 4)}...${wallet.slice(-4)}</div>
+                    <button class="wallet-button" onclick="disconnectWallet()">Disconnect</button>
+                `;
+            } else {
+                walletSection.innerHTML = `
+                    <button class="wallet-button" onclick="connectWallet()">Connect Wallet</button>
+                `;
+            }
+        }
+
+        async function disconnectWallet() {
+            if (provider && provider.disconnect) {
+                await provider.disconnect();
+            }
+            wallet = null;
+            provider = null;
+            showMessage('Wallet disconnected.');
+            updateWalletSection();
+        }
+
+        // Make sure to expose the connectWallet and disconnectWallet functions to the global scope
+        window.connectWallet = connectWallet;
+        window.disconnectWallet = disconnectWallet;
+
+        // API Interactions
+        async function fetchUwuToSolRate() {
+            try {
+                const response = await fetch(UWU_TO_SOL_API, requestOptions);
+                const data = await response.json();
+                uwuToSolRate = data.data.price;
+                convertSolToUwu(); // Update the conversion when rate changes
+                return uwuToSolRate;
+            } catch (error) {
+                console.error('Error fetching UWU to SOL rate:', error);
+                showMessage('Error fetching current exchange rate.', true);
+                return 0;
+            }
+        }
+
+        async function fetchFloorPrices() {
+            const magicEdenApi = `${MAGIC_EDEN_API}/collections/`;
+
+            for (let collection of collections) {
+                try {
+                    const response = await fetch(`${magicEdenApi}${collection.symbol}/stats`);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const data = await response.json();
+                    if (data && typeof data.floorPrice !== 'undefined') {
+                        collection.floorPrice = data.floorPrice / 1e9; // Convert to SOL
+                    } else {
+                        console.warn(`Floor price data not found for ${collection.name}`);
+                        collection.floorPrice = null;
+                    }
+                } catch (error) {
+                    console.error(`Error fetching floor price for ${collection.name}:`, error.message);
+                    collection.floorPrice = null;
+                }
+            }
+        }
+
+        async function fetchRates() {
+            try {
+                // Fetch UwU to SOL rate
+                const uwuResponse = await fetch(UWU_TO_SOL_API, requestOptions);
+                const uwuData = await uwuResponse.json();
+                uwuToSolRate = uwuData.data.price;
+
+                // Fetch SOL to USD rate
+                const solResponse = await fetch(SOL_TO_USD_API);
+                const solData = await solResponse.json();
+                solToUsdRate = solData.solana.usd;
+
+                updateUwUTracker();
+            } catch (error) {
+                console.error('Error fetching rates:', error);
+                showMessage('Error fetching current rates.', true);
+            }
+        }
+
+        function updateUwUTracker() {
+            const uwuToUsdRate = 1 / uwuToSolRate * solToUsdRate;
+            document.getElementById('uwuToUsd').textContent = `1 $UwU = $${uwuToUsdRate.toFixed(4)} USD`;
+            document.getElementById('uwuToSol').textContent = `1 $UwU = ${uwuToSolRate.toFixed(6)} SOL`;
+        }
+
+        // Initialize Theme
+        applyTheme();
+
+        // Add these new properties to each collection object
+        collections.forEach((collection, index) => {
+            collection.createdAt = new Date(2023, 0, 1 + index).getTime(); // Example creation dates
+            collection.sales24h = Math.floor(Math.random() * 100); // Random sales data for demonstration
+        });
+
+        // Filter function
+        function applyFilter() {
+            const filterValue = document.getElementById('filterSelect').value;
+            let sortedCollections = [...collections];
+
+            switch (filterValue) {
+                case 'priceHighToLow':
+                    sortedCollections.sort((a, b) => (b.floorPrice || 0) - (a.floorPrice || 0));
+                    break;
+                case 'priceLowToHigh':
+                    sortedCollections.sort((a, b) => (a.floorPrice || 0) - (b.floorPrice || 0));
+                    break;
+                case 'oldest':
+                    sortedCollections.sort((a, b) => a.createdAt - b.createdAt);
+                    break;
+                case 'newest':
+                    sortedCollections.sort((a, b) => b.createdAt - a.createdAt);
+                    break;
+                case 'sales24h':
+                    sortedCollections.sort((a, b) => b.sales24h - a.sales24h);
+                    break;
+                default:
+                    // 'relevance' - keep original order
+                    break;
+            }
+
+            renderCollections(sortedCollections);
+        }
+
+        // Main function to initialize the page
+        function initializePage() {
+            showLoading();
+            fetchRates()
+                .then(() => fetchFloorPrices())
+                .then(() => {
+                    applyFilter(); // This will render the collections with the default filter
+                    hideLoading();
+                    setInterval(fetchRates, UPDATE_INTERVAL);
+                })
+                .catch(error => {
+                    console.error('Error initializing page:', error);
+                    hideLoading();
+                    showMessage('Error loading page data. Please try again later.', true);
+                });
+        }
+
+        // Render collections
+        function renderCollections(collectionsToRender = collections) {
+            const collectionGrid = document.getElementById('collectionGrid');
+            collectionGrid.innerHTML = '';
+            collectionsToRender.forEach(collection => {
+                const card = createCollectionCard(collection);
+                collectionGrid.appendChild(card);
+            });
+        }
+
+        // Create a card for a collection
+        function createCollectionCard(collection) {
+            const card = document.createElement('div');
+            card.className = 'collection-card';
+            card.innerHTML = `
+                <img src="${collection.image}" alt="${collection.name}" class="collection-image">
+                <div class="collection-info">
+                    <div class="collection-name">${collection.name}</div>
+                    <div class="price-info">Floor Price: ${collection.floorPrice !== null ? collection.floorPrice.toFixed(2) + ' SOL' : 'N/A'}</div>
+                    <div class="sales-info">24h Sales: ${collection.sales24h}</div>
+                    <div class="button-container">
+                        <a href="${collection.link}" target="_blank" class="collection-link">View Collection</a>
+                        <button class="buy-button" onclick="buyNFT('${collection.symbol}')">Buy NFT</button>
+                    </div>
+                </div>
+            `;
+            return card;
+        }
+
+        // Buy NFT function
+        async function buyNFT(symbol) {
+            if (!wallet) {
+                showMessage('Please connect your wallet first.', true);
+                return;
+            }
+
+            showLoading();
+            try {
+                const collection = collections.find(c => c.symbol === symbol);
+                if (!collection) {
+                    throw new Error('Collection not found');
+                }
+
+                // Connect to Solana network
+                const connection = new solanaWeb3.Connection('https://api.mainnet-beta.solana.com');
+                const metaplex = new Metaplex(connection);
+
+                // Find the NFT to purchase (this is a simplified example)
+                const nfts = await metaplex.nfts().findAllByMint({ mintAddress: new solanaWeb3.PublicKey(collection.symbol) }).run();
+                if (nfts.length === 0) {
+                    throw new Error('No NFTs found in this collection');
+                }
+                const nftToBuy = nfts[0];
+
+                // Create a transaction to purchase the NFT
+                const transaction = new solanaWeb3.Transaction().add(
+                    solanaWeb3.SystemProgram.transfer({
+                        fromPubkey: provider.publicKey,
+                        toPubkey: new solanaWeb3.PublicKey(nftToBuy.updateAuthority),
+                        lamports: collection.floorPrice * 1e9, // Convert SOL to lamports
+                    })
+                );
+
+                // Sign and send the transaction
+                const signature = await provider.signAndSendTransaction(transaction);
+                await connection.confirmTransaction(signature, 'confirmed');
+
+                showMessage(`Successfully purchased an NFT from ${collection.name} for ${collection.floorPrice} SOL!`);
+            } catch (error) {
+                console.error('Error buying NFT:', error);
+                showMessage(`Failed to buy NFT: ${error.message}`, true);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // New function to convert SOL to UwU
+        function convertSolToUwu() {
+            const solAmount = parseFloat(document.getElementById('solInput').value);
+            if (isNaN(solAmount)) {
+                document.getElementById('conversionResult').textContent = '';
+                return;
+            }
+            const uwuAmount = solAmount / uwuToSolRate;
+            document.getElementById('conversionResult').textContent = `${solAmount} SOL ≈ ${uwuAmount.toFixed(2)} $UwU`;
+        }
+
+        // Run initialization when DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePage();
+            applyTheme();
+        });
+
+        // Make sure to expose the convertSolToUwu function to the global scope
+        window.convertSolToUwu = convertSolToUwu;
+    })();
+    </script>
+</body>
+</html>
