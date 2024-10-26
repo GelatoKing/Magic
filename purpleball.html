@@ -8,11 +8,21 @@
 </head>
 <body class="night-mode">
     <div class="container">
+        <div class="wallet-section" id="walletSection">
+            <button class="wallet-button" onclick="connectWallet()">Connect Wallet</button>
+        </div>
         <h1>🦄 UwU NFT Collections 🦄</h1>
+        <div class="uwu-tracker">
+            <h2>$UwU Live Tracker</h2>
+            <div class="uwu-rates">
+                <div class="uwu-rate" id="uwuToUsd">1 $UwU = $0.00 USD</div>
+                <div class="uwu-rate" id="uwuToSol">1 $UwU = 0.000000 SOL</div>
+            </div>
+        </div>
         <div class="theme-selector">
             <button class="theme-button" onclick="setTheme('light-mode')">Unicorn Theme</button>
             <button class="theme-button" onclick="setTheme('night-mode')">Night Mode</button>
-            <button class="theme-button" onclick="setTheme('miami-vice')">Miami Vice</button>
+            <button class="theme-button" onclick="setTheme('miami-vice')">Vice</button>
         </div>
         <div class="filter-container">
             <select id="filterSelect" class="filter-select" onchange="applyFilter()">
@@ -29,6 +39,9 @@
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-spinner"></div>
     </div>
-    <script src="scripts.js"></script>
+
+    <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
+    <script src="https://unpkg.com/@metaplex-foundation/js@latest/dist/index.global.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
