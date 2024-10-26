@@ -19,6 +19,10 @@
                 <div class="uwu-rate" id="uwuToSol">1 $UwU = 0.000000 SOL</div>
             </div>
         </div>
+        <div class="conversion-section">
+            <input type="number" id="solInput" class="conversion-input" placeholder="Enter SOL amount" oninput="convertSolToUwu()">
+            <div id="conversionResult" class="conversion-result"></div>
+        </div>
         <div class="theme-selector">
             <button class="theme-button" onclick="setTheme('light-mode')">Unicorn Theme</button>
             <button class="theme-button" onclick="setTheme('night-mode')">Night Mode</button>
@@ -42,6 +46,7 @@
 
     <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.min.js"></script>
     <script src="https://unpkg.com/@metaplex-foundation/js@latest/dist/index.global.js"></script>
+    <script src="wallet.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
