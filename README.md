@@ -15,16 +15,19 @@ Created with love and sparkles by the UwUPunks team! 💖🎀
 ## 🚀 Setup
 
 1. 🔮 Clone the repository (like summoning a friendly familiar)
-2. 🌟 Open `index.html` in a web browser (your portal to the UwU realm)
+2. 🌟 Install dependencies with `npm install`
 3. 🔑 Make sure to replace `your_magic_eden_api_key_here` and `your_solscan_api_key_here` in `script.js` with your actual API keys (they're like secret unicorn passwords)
+4. 🌈 Run the project with `npm start`
 
-## 🛠️ Technologies Used
+## 🛠️ Dependencies
 
-- 🌈 HTML5 (the canvas for our digital art)
-- 🎨 CSS3 (sprinkle on the styles)
-- ✨ JavaScript (where the magic happens)
-- 🌙 Solana Web3.js (blockchain wizardry)
-- 🖼️ Metaplex (NFT sorcery)
+This project uses the following magical ingredients:
+
+- 🌙 @solana/web3.js: For Solana blockchain wizardry
+- 🖼️ @metaplex-foundation/js: For NFT sorcery
+- 🚀 live-server: For local development enchantments (devDependency)
+
+Check the `package.json` file for the specific versions of each dependency.
 
 ## 🤝 Contributing
 
