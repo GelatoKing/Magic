@@ -4,21 +4,16 @@ body {
     padding: 0;
     transition: all 0.5s ease;
 }
-
 .container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
 }
-
 h1 {
     text-align: center;
     font-size: 2.5em;
     margin-bottom: 30px;
     text-shadow: 0 0 10px currentColor;
-}
-
-
 }
 .collection-grid {
     display: grid;
@@ -91,12 +86,87 @@ h1 {
 }
 
 /* Theme Styles */
-/* Add styles for light-mode, night-mode, and miami-vice */
+body.light-mode {
+    background-color: #f6b7f5;
+    color: #b981e4;
+}
+body.light-mode .collection-card {
+    background-color: #fff1ff;
+    border: 2px solid #ffb7ff;
+}
+body.light-mode .collection-link, body.light-mode .buy-button, body.light-mode .wallet-button {
+    background-color: #ffb7ff;
+    color: #fff;
+}
+body.light-mode .collection-link:hover, body.light-mode .buy-button:hover, body.light-mode .wallet-button:hover {
+    background-color: #ff85ff;
+    transform: translateY(-2px);
+}
+body.light-mode .theme-button {
+    background-color: #ffb7ff;
+    color: #fff;
+}
+body.light-mode .theme-button:hover {
+    background-color: #ff85ff;
+}
 
-.price-info, .sales-info {
+body.night-mode {
+    background-color: #000000;
+    color: #FF85FF;
+}
+body.night-mode .collection-card {
+    background-color: #1A001A;
+    border: 2px solid #FF85FF;
+}
+body.night-mode .collection-link, body.night-mode .buy-button, body.night-mode .wallet-button {
+    background-color: #FF85FF;
+    color: #000;
+}
+body.night-mode .collection-link:hover, body.night-mode .buy-button:hover, body.night-mode .wallet-button:hover {
+    background-color: #FF00FF;
+    transform: translateY(-2px);
+}
+body.night-mode .theme-button {
+    background-color: #1A001A;
+    color: #FF85FF;
+    border: 2px solid #FF85FF;
+}
+body.night-mode .theme-button:hover {
+    background-color: #FF85FF;
+    color: #000;
+}
+
+body.miami-vice {
+    background-color: #ff77a2;
+    color: #00ffff;
+}
+body.miami-vice .collection-card {
+    background-color: #2a0a2f;
+    border: 2px solid #00ffff;
+}
+body.miami-vice .collection-link, body.miami-vice .buy-button, body.miami-vice .wallet-button {
+    background-color: #00ffff;
+    color: #2a0a2f;
+}
+body.miami-vice .collection-link:hover, body.miami-vice .buy-button:hover, body.miami-vice .wallet-button:hover {
+    background-color: #00cccc;
+    transform: translateY(-2px);
+}
+body.miami-vice .theme-button {
+    background-color: #2a0a2f;
+    color: #00ffff;
+    border: 2px solid #00ffff;
+}
+body.miami-vice .theme-button:hover {
+    background-color: #00ffff;
+    color: #2a0a2f;
+}
+
+.price-info {
     margin: 10px 0;
     padding: 8px;
     border-radius: 6px;
+    background-color: rgba(255,255,255,0.1);
 }
 
 .loading-overlay {
@@ -126,7 +196,17 @@ h1 {
     100% { transform: rotate(360deg); }
 }
 
-.error-message, .success-message {
+.error-message {
+    background-color: rgba(255, 0, 0, 0.1);
+    border: 1px solid currentColor;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 6px;
+    text-align: center;
+}
+
+.success-message {
+    background-color: rgba(0, 255, 0, 0.1);
     border: 1px solid currentColor;
     padding: 10px;
     margin: 10px 0;
@@ -148,4 +228,86 @@ h1 {
     background-color: rgba(255,255,255,0.1);
     color: inherit;
     border: 2px solid currentColor;
+}
+
+.filter-select option {
+    background-color: #1A001A;
+    color: #FF85FF;
+}
+
+.wallet-section {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+}
+
+.wallet-button {
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    background-color: rgba(255,255,255,0.1);
+    color: inherit;
+    border: 2px solid currentColor;
+    transition: all 0.3s ease;
+}
+
+.wallet-button:hover {
+    background-color: rgba(255,255,255,0.2);
+}
+
+.wallet-address {
+    padding: 10px 15px;
+    border-radius: 8px;
+    background-color: rgba(255,255,255,0.1);
+    color: inherit;
+    border: 2px solid currentColor;
+}
+
+.conversion-section {
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: rgba(255,255,255,0.1);
+    border-radius: 8px;
+}
+
+.conversion-input {
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid currentColor;
+    background-color: rgba(255,255,255,0.1);
+    color: inherit;
+    font-size: 1rem;
+}
+
+.conversion-result {
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+.uwu-tracker {
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: rgba(255,255,255,0.1);
+    border-radius: 8px;
+}
+
+.uwu-tracker h2 {
+    margin-bottom: 10px;
+}
+
+.uwu-rates {
+    display: flex;
+    justify-content: space-around;
+    font-size: 1.2rem;
+}
+
+.uwu-rate {
+    padding: 10px;
+    background-color: rgba(255,255,255,0.05);
+    border-radius: 4px;
 }
